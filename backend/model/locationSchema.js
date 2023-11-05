@@ -1,10 +1,7 @@
 const mongoose = require('mongoose');
 
 const locationSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  },
+ 
   latitude: {
     type: Number,
     required: true,
@@ -13,6 +10,10 @@ const locationSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User" 
+},
   timestamp: {
     type: Date,
     default: Date.now,

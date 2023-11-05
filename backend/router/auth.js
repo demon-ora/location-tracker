@@ -17,8 +17,8 @@ router.get('/', (req, res) => {
 
 router.post('/register', async (req, res) => {
   console.log(req.body);
-    const { name, email, password, cpassword } = req.body;
-    if (!name || !email || !password || !cpassword) {
+    const { name, email,job, password, cpassword } = req.body;
+    if (!name || !email || !job || !password || !cpassword) {
       return res.status(422).json({ error: "Please fill all the fields" });
     }
   
@@ -29,7 +29,7 @@ router.post('/register', async (req, res) => {
       } else if (password != cpassword) {
         return res.status(422).json({ error: "Passwords are not matching" });
       } else {
-        const user = new User({ name, email, password, cpassword });
+        const user = new User({ name, email,job, password, cpassword });
         await user.save();
         return res.status(201).json({ message: "User registered successfully"}); // Set the status code to 201 for successful registration
       }
@@ -75,14 +75,14 @@ router.post('/register', async (req, res) => {
     }
   });
   
-  router.post('/locations',authenticate, async (req, res) => {
-    const { userID, latitude, longitude } = req.body;
-    console.log(req.body);
-  
+  router.post('/locations', authenticate, async (req, res) => {
+    const { latitude, longitude } = req.body;
+    console.log("calling");
+    
     try {
       // Check if a location entry for the user already exists
-      const existingLocation = await Location.findOne({ userID });
-  
+      const existingLocation = await Location.findOne({ user: req.userID });
+      
       if (existingLocation) {
         // If an entry exists, update the location data
         existingLocation.latitude = latitude;
@@ -90,9 +90,9 @@ router.post('/register', async (req, res) => {
         await existingLocation.save();
         res.status(200).json({ message: 'Location updated' });
       } else {
-        // If no entry exists, create a new entry
+        // If no entry exists, create a new entry with the user reference
         const location = new Location({
-          userID,
+          user: req.userID, // Set the user reference to the user's ID
           latitude,
           longitude,
         });
@@ -109,6 +109,7 @@ router.post('/register', async (req, res) => {
 router.get('/locations', async (req, res) => {
   try {
     // Fetch all user locations from the database
+     console.log("list");
     const locations = await Location.find();
     res.status(200).json(locations);
   } catch (error) {
@@ -118,10 +119,10 @@ router.get('/locations', async (req, res) => {
 });
 
 
-// Add this route to your Express backend
+
 router.get('/logout', (req, res) => {
   console.log("hello");
-  // Clear the JWT token or session (if you're using sessions)
+
   res.clearCookie('jwtoken'); // Clear the cookie you set during login
 
   // Optionally, you can also destroy the session if you're using sessions

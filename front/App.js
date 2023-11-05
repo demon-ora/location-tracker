@@ -16,7 +16,7 @@ function App() {
         <Stack.Screen name="Registration" component={RegistrationScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="LocationList" component={LocationListScreen} />
-        <Stack.Screen name="Map" component={MapScreen} />
+        <Stack.Screen name="MapScreen" component={MapScreen} />
         <Stack.Screen name="Tracking" component={TrackingScreen} />
       </Stack.Navigator>
     </NavigationContainer>

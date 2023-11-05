@@ -6,12 +6,11 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TrackingScreen = () => {
-  const navigation = useNavigation(); 
+  const navigation = useNavigation();
   const [userLocation, setUserLocation] = useState(null);
 
-  useEffect(() => {
-    const getLocation = async () => {
-      // Request location permissions
+  const getLocation = async () => {
+    try {
       const { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== 'granted') {
@@ -19,38 +18,44 @@ const TrackingScreen = () => {
         return;
       }
 
-      try {
-        // Get the user's current location
-        const location = await Location.getCurrentPositionAsync({});
-        const { latitude, longitude } = location.coords;
-        console.log(latitude);
+      const location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
 
-        setUserLocation({ latitude, longitude });
-      } catch (error) {
-        console.error('Error getting user location:', error);
-        // Handle the error here
-      }
-    };
+      setUserLocation({ latitude, longitude });
 
+      // Save the location to the server
+      saveLocation();
+    } catch (error) {
+      console.error('Error getting user location:', error);
+    }
+  };
+
+  useEffect(() => {
+    // Call getLocation initially
     getLocation();
+
+    // Set up an interval to call getLocation every 10 seconds
+    const locationInterval = setInterval(getLocation, 10000);
+
+    // Clean up the interval when the component unmounts
+    return () => clearInterval(locationInterval);
   }, []);
 
   const saveLocation = async () => {
     const token = await AsyncStorage.getItem('jwtToken');
     if (userLocation) {
       try {
-        const response = await fetch('http://192.168.1.95:3000/locations', {
+        const response = await fetch('http://192.168.1.77:3000/locations', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `${token}`,
           },
           body: JSON.stringify(userLocation),
         });
 
         if (response.ok) {
           console.log('Location saved successfully');
-        
         } else {
           console.error('Error saving location to the backend');
         }
@@ -60,10 +65,11 @@ const TrackingScreen = () => {
     }
   };
 
-
   const handleLogout = async () => {
     try {
-      const response = await fetch('http://192.168.1.95:3000/logout', {
+      await AsyncStorage.removeItem('jwtToken');
+
+      const response = await fetch('http://192.168.1.77:3000/logout', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -81,7 +87,6 @@ const TrackingScreen = () => {
     }
   };
 
-
   return (
     <View>
       <MapView
@@ -96,9 +101,8 @@ const TrackingScreen = () => {
         {userLocation && <Marker coordinate={userLocation} title="You" />}
         {/* Add markers for other users' locations here */}
       </MapView>
-      <Button title="Save Location" onPress={saveLocation} />
       <Button title="Logout" onPress={handleLogout} />
-     <Button title="View Locations" onPress={() => navigation.navigate('LocationList')} />
+      <Button title="View Locations" onPress={() => navigation.navigate('LocationList')} />
       {userLocation && (
         <View>
           <Text>Latitude: {userLocation.latitude}</Text>

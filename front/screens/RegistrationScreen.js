@@ -4,6 +4,7 @@ import { View, TextInput, Button, Text } from 'react-native';
 const RegistrationScreen = ({ navigation }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [job, setJob] = useState('');
   const [password, setPassword] = useState('');
   const [cpassword, setCpassword] = useState('');
   const [error, setError] = useState(null);
@@ -14,11 +15,11 @@ const RegistrationScreen = ({ navigation }) => {
       return;
     }
 
-    const user = { name, email, password, cpassword };
+    const user = { name, email,job, password, cpassword };
     console.log(user);
 
     try {
-      const response = await fetch('http://192.168.1.95:3000/register', {
+      const response = await fetch('http://192.168.1.77:3000/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -43,6 +44,7 @@ const RegistrationScreen = ({ navigation }) => {
       {error && <Text style={{ color: 'red' }}>{error}</Text>}
       <TextInput placeholder="Name" value={name} onChangeText={setName} />
       <TextInput placeholder="Email" value={email} onChangeText={setEmail} />
+      <TextInput placeholder="Job" value={job} onChangeText={setJob} />
       <TextInput placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
       <TextInput
         placeholder="Confirm Password"

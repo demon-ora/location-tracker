@@ -11,6 +11,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    job:{
+        type: String,
+        required: false,
+    },
     password:{
         type: String,
         required: true,
@@ -30,7 +34,7 @@ const userSchema = new mongoose.Schema({
 });
 
 
-//we are hashing the password
+//hashing the password
 
 userSchema.pre('save', async function(next){
     if(this.isModified('password')){
@@ -40,7 +44,7 @@ userSchema.pre('save', async function(next){
     next();
 });
 
-//we are generating token
+// generating token
 
 userSchema.methods.generateAuthToken = async function(){
      try{

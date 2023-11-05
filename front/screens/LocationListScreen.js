@@ -1,15 +1,18 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, FlatList, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 import axios from 'axios';
+import { useNavigation } from '@react-navigation/native';
 
 const LocationListScreen = () => {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigation = useNavigation();
 
   const fetchUserLocations = useCallback(async () => {
     try {
-      const response = await axios.get('http://192.168.1.95:3000/locations');
+      console.log('Fetching user locations...');
+      const response = await axios.get('http://192.168.1.77:3000/locations');
       setLocations(response.data);
     } catch (err) {
       setError('Error fetching locations. Please try again.');
@@ -20,14 +23,32 @@ const LocationListScreen = () => {
 
   useEffect(() => {
     fetchUserLocations();
+
+    // Set up an interval to refresh the location list every 10 seconds
+    const locationListInterval = setInterval(() => {
+      fetchUserLocations();
+    }, 10000);
+
+    return () => {
+      // Clean up the interval when the component unmounts
+      clearInterval(locationListInterval);
+    };
   }, [fetchUserLocations]);
 
+  const handleLocationPress = (selectedLocation) => {
+    // Navigate to the MapScreen and pass the selected location as a parameter
+    navigation.navigate('MapScreen', { selectedLocation });
+  };
+
   const renderLocationItem = ({ item }) => (
-    <View style={styles.locationItem}>
+    <TouchableOpacity
+      style={styles.locationItem}
+      onPress={() => handleLocationPress(item)}
+    >
       <Text style={styles.locationText}>
         Latitude: {item.latitude}, Longitude: {item.longitude}
       </Text>
-    </View>
+    </TouchableOpacity>
   );
 
   if (loading) {
@@ -61,9 +82,9 @@ const LocationListScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff', // Set the background color
-    paddingHorizontal: 16, // Add horizontal padding
-    paddingTop: 20, // Add top padding
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingTop: 20,
   },
   title: {
     fontSize: 24,
@@ -77,7 +98,7 @@ const styles = StyleSheet.create({
   locationItem: {
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
-    paddingVertical: 10, // Increase vertical padding
+    paddingVertical: 10,
   },
   locationText: {
     fontSize: 16,
